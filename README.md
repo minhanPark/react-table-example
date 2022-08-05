@@ -413,3 +413,127 @@ canFilter라고 되어 있어서 column에 filter값을 안 넣은 것들도 있
     disableFilters: true,
   },
 ```
+
+## Pagination
+
+Pagination을 추가하기 위해서는 usePagination을 우선 가지고 오고 옵션에 넣어준다.
+
+```js
+import { useTable, usePagination } from "react-table";
+
+const tableInstance = useTable(
+  {
+    columns,
+    data,
+  },
+  usePagination
+);
+```
+
+기본적으로 필요한 속성들을 갖고온다.
+
+```js
+const {
+  page,
+  nextPage,
+  previousPage,
+  canNextPage,
+  canPreviousPage,
+  pageOptions,
+  state,
+} = tableInstance;
+
+const { pageIndex } = state;
+```
+
+page에는 기존 row에 담겨있던 데이터들이 들어있다.  
+nextPages는 다음페이지로 넘기는 함수, previousPage은 이전 페이지로 넘기는 함수이다.  
+canNextPage, canPreviousPage은 이전 페이지로 및 다음 페이지로 넘길 수 있는 지 불린값을 반환해주고, state에는 현재 페이지 인덱스 등이 담겨있고, pageOptions에는 페이지 관련 메타정보들이 담겨있다.
+
+페이지로 바로 이동시켜야 할 땐 어떻게 할까?  
+gotoPage를 이용하면 된다.
+
+```jsx
+const {
+    gotoPage,
+    pageCount
+  } = tableInstance;
+
+<button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+<button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+  {">>"}
+</button>
+```
+
+이런식으로 goToPage로 해당 페이지로 바로 이동이 가능하다.
+
+## 페이지 사이즈 조절
+
+기본적으로 10으로 되어있지만 페이지 사이즈를 조절할 수 있다.
+
+```js
+const { setPageSize } = tableInstance;
+```
+
+위에 처럼 갖고와서 설정해주면 된다.
+
+## row selection
+
+useRowSelect를 넣어주고
+
+```js
+const tableInstance = useTable(
+  {
+    columns,
+    data,
+  },
+  useRowSelect,
+  (hooks) => {
+    hooks.visibleColumns.push((columns) => {
+      return [
+        {
+          id: "selection",
+          Header: ({ getToggleAllRowsSelectedProps }) => (
+            <Checkbox {...getToggleAllRowsSelectedProps()} />
+          ),
+          Cell: ({ row }) => <Checkbox {...row.getToggleRowSelectedProps()} />,
+        },
+        ...columns,
+      ];
+    });
+  }
+);
+```
+
+hooks를 받아와서 저렇게 check박스를 넣어준다.
+
+tableInstance에 selectedFlatRows에 선택한 값들이 담긴다.
+
+## Column 순서 바꾸기
+
+useColumnOrder을 사용하면 된다.
+
+```js
+const tableInstance = useTable(
+  {
+    columns,
+    data,
+  },
+  useColumnOrder
+);
+
+const { setColumnOrder } = tableInstance;
+
+const changeOrder = () => {
+  setColumnOrder([
+    "id",
+    "first_name",
+    "last_name",
+    "phone",
+    "country",
+    "date_of_birth",
+  ]);
+};
+```
+
+이렇게 setColumnOrder에 accessor를 입력해주면 해당 순서대로 바뀌게 된다.
